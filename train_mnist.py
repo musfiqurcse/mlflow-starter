@@ -6,16 +6,16 @@ import keras
 from keras import backend as K
 
 import cloudpickle
-
+import pandas as pd
 import mlflow
 import mlflow.keras
 import mlflow.pyfunc
 from mlflow.pyfunc import PythonModel
 from mlflow.utils.environment import _mlflow_conda_env
-
+import json
 #configure mlflow
-# mlflow.set_tracking_uri("databricks")
-# mlflow.set_experiment("/digit_recog/mlflow_local")
+mlflow.set_tracking_uri("databricks")
+mlflow.set_experiment("/var/www/project/mlflow/project/mlflow_test_2")
 # Not worked with this configuration.
 
 # mlflow.keras.autolog()
@@ -49,7 +49,12 @@ model = keras.models.Sequential([
   keras.layers.Dropout(args.dropout),
   keras.layers.Dense(10, activation=tf.nn.softmax)
 ])
-
+print(x_test)
+with open('result.json', '+w') as f:
+    df = pd.DataFrame(data=x_test[0])
+    f.write(df.to_json(orient='split'))
+f.close()
+print(y_test)
 #
 optimizer = keras.optimizers.SGD(lr=args.learning_rate,
                                  momentum=args.momentum,
@@ -101,13 +106,9 @@ conda_env = _mlflow_conda_env(
 #             return self.model.predict(input_df.values.reshape(-1, 28, 28))
 
 # mlflow.pyfunc.log_model(
-#     artifact_path="model",
+#     artifact_path="keras-model",
 #     python_model=KerasMnistCNN(),
-#     artifacts={
-#         "keras-model": mlflow.get_artifact_uri("model")
-#     },
 #     conda_env=conda_env)
-
 
 mlflow.keras.log_model(model,artifact_path='keras-model')
 
